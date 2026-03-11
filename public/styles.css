@@ -1,0 +1,101 @@
+body {
+    font-family: Arial;
+    background-color: #ffffff;    
+    border-radius: 5px;
+    
+}
+header{
+    background-image: url("birgichat.png");
+    background-size: cover;
+    background-position: center;
+    height: 132px; 
+    background-position: center 30%;
+}
+
+
+.container {
+    display: flex;
+    justify-content: center;
+}
+
+.paper {
+    background: #e0f5f8;
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+
+
+.message-time {
+    color: gray;
+    font-style: italic;
+    font-size: smaller;
+}
+
+.containerchat {
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+#messageInput {
+    width: 100%;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    
+}
+textarea{
+    resize: none;
+}
+
+#nameInput:focus,
+#messageInput:focus{
+    outline: none;
+    border: 1px solid #ff69b4;
+    box-shadow: 0 0 5px #ff69b4;
+    
+}
+
+#sendBtn{
+  width: 150px;
+  padding: 0;
+  border: none;
+  transform: rotate(5deg);
+  transform-origin: center;
+  font-family: "Gochi Hand", cursive;
+  text-decoration: none;
+  font-size: 15px;
+  cursor: pointer;
+  padding-bottom: 3px;
+  border-radius: 5px;
+  box-shadow: 0 2px 0 #494a4b;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background-color: #a4e0c8;
+  }
+  #sendBtn span {
+  background: #aac5db;
+  display: block;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: 2px solid #494a4b;
+}
+  #sendBtn:active {
+  transform: translateY(5px);
+  padding-bottom: 0px;
+  outline: 0;}
+
+
+.messages{
+    display: flex;
+    flex-direction: column;
+}
+
+.my-message{
+    align-self:flex-end;
+}
