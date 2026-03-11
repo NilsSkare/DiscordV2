@@ -1,8 +1,13 @@
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    // mappen för statiska filer (index.html, osv...)
+    WebRootPath = "public"
+});
+
 var app = builder.Build();
 
-app.MapStaticAssets();
-app.UseStaticFiles();
+app.UseFileServer();
 app.UseWebSockets();
 
 app.Run("http://localhost:3000");
