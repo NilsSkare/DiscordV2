@@ -5,4 +5,4 @@ app.MapStaticAssets();
 app.UseStaticFiles();
 app.UseWebSockets();
 
-app.Run();
+app.Run("http://localhost:3000");
