@@ -4,9 +4,10 @@ const apiUrl = "/api";
 const messagePollingRateMs = 2000;
 
 const sendBtn = document.getElementById("sendBtn");
-const nameInput = document.getElementById("nameInput");
 const messageInput = document.getElementById("messageInput");
 const messagesContainer = document.querySelector(".messages");
+
+const curUsername = prompt("Skriv ditt användarnamn:");
 
 // Skapa ett meddelande objekt
 function createMessage(username, message) {
@@ -109,10 +110,10 @@ function displayMessages(messages) {
         var messageDiv = document.createElement("div");
         messageDiv.classList.add("message-div");
 
-        
         // Alla meddelanden från användaren
-        if(msg.user === nameInput.value){
-        messageDiv.classList.add("my-message");}
+        if(msg.user === curUsername) {
+            messageDiv.classList.add("my-message");
+        }
 
         // namn + tid ovanför chatbubblan
         var messageHead = document.createElement("div");
@@ -139,7 +140,7 @@ function displayMessages(messages) {
 }
 
 async function sendCurrentMessage() {
-  const name = (nameInput.value || "").trim();
+  const name = curUsername;
   const text = messageInput.value;
 
   if (!text.trim()) return;
