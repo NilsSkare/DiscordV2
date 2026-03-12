@@ -18,23 +18,6 @@ function createMessage(username, message) {
     };
 }
 
-// Hämtar alla meddelanden från servern
-// Returnerar null om vi inte fick ett svar
-async function getMessages() {
-    try {
-        const response = await fetch(apiUrl + "/messages");
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
-        const result = await response.json();
-        //console.log(result.messages);
-        return result.messages;
-    } catch (error) {
-        console.error(error.message);
-    }
-    return null;
-}
-
 const socket = new WebSocket("/api/connect");
 const storedMessages = [];
 
