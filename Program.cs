@@ -63,6 +63,7 @@ app.Map("/api/connect", async (HttpContext context) =>
 
     var buffer = new byte[1024];
 
+    // TODO: Hantera OperationCanceledException
     if (socket.State == WebSocketState.Open)
     {
         activeSockets.Add(socket);
