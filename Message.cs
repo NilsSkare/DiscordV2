@@ -1,3 +1,8 @@
 namespace Discord;
 
-public record MessageDto(string User, string Message, long Time = 0);
+using System.Text.Json.Serialization;
+
+public record MessageDto(
+    [property: JsonPropertyName("user")] string User,
+    [property: JsonPropertyName("message")] string Message,
+    [property: JsonPropertyName("time")] long Time = 0);

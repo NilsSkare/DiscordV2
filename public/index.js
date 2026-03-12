@@ -8,24 +8,6 @@ const nameInput = document.getElementById("nameInput");
 const messageInput = document.getElementById("messageInput");
 const messagesContainer = document.querySelector(".messages");
 
-// Hämtar alla meddelanden från servern
-// Returnerar null om vi inte fick ett svar
-async function getMessages() {
-    try {
-        const response = await fetch(apiUrl + "/messages");
-        if (!response.ok) {
-              throw new Error(`Response status: ${response.status}`);
-        }
-        const result = await response.json();
-        console.log(result.messages);
-        return result.messages;
-    }
-    catch(error) {
-        console.error(error.message);
-    }
-    return null;
-}
-
 // Skapa ett meddelande objekt
 function createMessage(username, message) {
     return {
@@ -35,33 +17,35 @@ function createMessage(username, message) {
     };
 }
 
-// Posta ett meddelande till servern
-async function postMessage(msg) {
+// Hämtar alla meddelanden från servern
+// Returnerar null om vi inte fick ett svar
+async function getMessages() {
     try {
-        const response = await fetch(apiUrl + "/messages", {
-            method: "POST",
-            body: JSON.stringify(msg),
-            headers: {
-                "Content-Type": "application/json",
-            }
-        });
+        const response = await fetch(apiUrl + "/messages");
         if (!response.ok) {
               throw new Error(`Response status: ${response.status}`);
         }
-        console.log(`Post message status: ${response.status}`);
+        const result = await response.json();
+        //console.log(result.messages);
+        return result.messages;
     }
     catch(error) {
         console.error(error.message);
     }
+    return null;
 }
 
+const socket = new WebSocket("/api/connect");
+const storedMessages = [];
+
+// Ta fram användnamnets färg
 function getUsernameColor(username) {
     let csum = 0;
     for(let i = 0; i < username.length; i++) {
         csum += username.charCodeAt(i);
     }
     let cmod = Math.floor(csum / username.charCodeAt(0)) % 10;
-    console.log(username, csum, cmod);
+    //console.log(username, csum, cmod);
     switch(cmod) {
         case 0:
             return "#f87777";
@@ -87,6 +71,7 @@ function getUsernameColor(username) {
     return "#ffffff";
 }
 
+// Formaterra unixtid till en läsbar sträng
 function formatUnixT(time) {
     const curT = Date.now();
 
@@ -117,10 +102,10 @@ function formatUnixT(time) {
     return `${formattedDate} ${formattedTime}`;
 }
 
-function displayMessages(allMessages ) {
+function displayMessages(messages) {
     var messagesContainer = document.querySelector(".messages");
     messagesContainer.innerHTML = "";
-    allMessages .forEach(msg => {
+    messages .forEach(msg => {
         var messageDiv = document.createElement("div");
         messageDiv.classList.add("message-div");
 
@@ -159,10 +144,36 @@ async function sendCurrentMessage() {
 
   if (!text.trim()) return;
 
-  await postMessage(createMessage(name, text));
-  messageInput.value = "";
-  await getMessages();
+  await sendMessage(createMessage(name, text));
 }
+
+async function sendMessage(msg) {
+    socket.send(JSON.stringify(msg));
+}
+
+socket.onopen = () => {
+    console.log("Ansluten till servern");
+
+    const msg1 = createMessage("bengt", "bengt är här!");
+    socket.send(JSON.stringify(msg1));
+
+    // Skicka ett meddelande till servern
+    //socket.send("Hej från klienten!");
+};
+
+socket.onmessage = (event) => {
+    var msg = JSON.parse(event.data);
+    storedMessages.push(msg);
+    displayMessages(storedMessages);
+};
+
+socket.onclose = () => {
+    console.log("Anslutningen stängdes");
+};
+
+socket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+};
 
 sendBtn.addEventListener("click", async () => {
   try {
@@ -184,34 +195,3 @@ messageInput.addEventListener("keydown", async (e) => {
     }
   }
 });
-async function pollOnlyNewMessages() {
-    try {
-        const messages = await fetch(apiUrl + "/messages", {
-            headers: {
-                "X-Poll": "yes"
-            }
-        });
-
-        if (!messages.ok) {
-            throw new Error(`Response status: ${messages.status}`);
-        }
-        const result = await messages.json();
-        console.log(result.messages);
-        return result.messages;
-    }
-    catch (error) {
-        console.error(error.message);
-    }
-    return null;
-}
-
-async function pollMessages() {
-    const messages = await pollOnlyNewMessages();
-    displayMessages(messages);
-    pollMessages();
-}
-
-getMessages()
-    .then(displayMessages)
-    .then(pollMessages)
-    .catch(console.error);

@@ -1,4 +1,7 @@
 using Discord;
+using System.Net.WebSockets;
+using System.Text;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -9,6 +12,7 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 
 var app = builder.Build();
 app.UseFileServer(); // använd statiska filer
+app.UseWebSockets();
 
 static long ToUnixTime(DateTime dt)
 {
@@ -42,27 +46,61 @@ app.MapGet("/api/messages", async (HttpRequest request, CancellationToken ct) =>
     return new { messages };
 });
 
-// Post för meddelanden
-app.MapPost("/api/messages", async (MessageDto msg) =>
+List<WebSocket> activeSockets = new();
+
+app.Map("/api/connect", async (HttpContext context) =>
 {
-    if (string.IsNullOrWhiteSpace(msg.Message))
-        return Results.BadRequest(new { error = "message får inte vara tom." });
+    // Avsluta om requesten inte är en websocket request.
+    if (!context.WebSockets.IsWebSocketRequest)
+    {
+        Console.WriteLine("Fel! :(");
+        context.Response.StatusCode = 400;
+        return;
+    }
 
-    var user = string.IsNullOrWhiteSpace(msg.User) ? "Anonymous" : msg.User.Trim();
-    var message = msg.Message.TrimEnd();
+    using var socket = await context.WebSockets.AcceptWebSocketAsync();
+    var buffer = new byte[1024];
+    activeSockets.Add(socket);
 
-    // Ta fram unixtiden
-    long time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    while (socket.State == WebSocketState.Open)
+    {
+        var result = await socket.ReceiveAsync(buffer, context.RequestAborted);
+        if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
+        {
+            var msgJsonStr = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            var msg = JsonSerializer.Deserialize<MessageDto>(msgJsonStr);
 
-    Console.WriteLine($"msg post: {msg.User} {time}: {msg.Message}");
+            // Ta fram unixtiden
+            long timeNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-    var saved = new MessageDto(user, message, time);
-    messages.Add(saved);
+            var saved = new MessageDto(msg.User, msg.Message, timeNow);
+            Console.WriteLine(
+                $"msg received: {saved.User} {saved.Time}: {saved.Message}");
+            messages.Add(saved);
 
-    globalCts.Cancel();
-    globalCts = new CancellationTokenSource();
+            foreach (var actSock in activeSockets)
+            {
+                var response = Encoding.UTF8.GetBytes(
+                    JsonSerializer.Serialize<MessageDto>(saved));
+                await actSock.SendAsync(
+                    response,
+                    System.Net.WebSockets.WebSocketMessageType.Text,
+                    true,
+                    context.RequestAborted);
+            }
+        }
+    }
 
-    return Results.Ok(saved);
+    if (socket.State == WebSocketState.CloseReceived)
+    {
+        await socket.CloseAsync(
+            WebSocketCloseStatus.NormalClosure,
+            "Closed",
+            context.RequestAborted);
+        activeSockets.Remove(socket);
+    }
+
+    Console.WriteLine("Closing socket");
 });
 
 app.Run("http://localhost:3000");
