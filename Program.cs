@@ -14,18 +14,13 @@ var app = builder.Build();
 app.UseFileServer(); // använd statiska filer
 app.UseWebSockets();
 
-static long ToUnixTime(DateTime dt)
-{
-    return ((DateTimeOffset)dt).ToUnixTimeMilliseconds();
-}
-
 var messages = new List<MessageDto>(){
-    new("danne", "hej", ToUnixTime(DateTime.Now.AddDays(-6))),
-    new("lennart", "och hå", ToUnixTime(DateTime.Now.AddDays(-2))),
-    new("xX_Gandalf_Xx", "YOU SHALL NOT POST!", ToUnixTime(DateTime.Now.AddDays(-1))),
-    new("birgitta69", "är nån vaken?", ToUnixTime(DateTime.Now.AddMinutes(-14))),
-    new("danne", "@birgitta69 jo, jag är vaken", ToUnixTime(DateTime.Now.AddMinutes(-11))),
-    new("max", "@danne snacka inte med min brud!", ToUnixTime(DateTime.Now.AddMinutes(-5))),
+    new("danne", "hej", DateTime.Now.AddDays(-6).ToUnixTime()),
+    new("lennart", "och hå", DateTime.Now.AddDays(-2).ToUnixTime()),
+    new("xX_Gandalf_Xx", "YOU SHALL NOT POST!", DateTime.Now.AddDays(-1).ToUnixTime()),
+    new("birgitta69", "är nån vaken?", DateTime.Now.AddMinutes(-14).ToUnixTime()),
+    new("danne", "@birgitta69 jo, jag är vaken", DateTime.Now.AddMinutes(-11).ToUnixTime()),
+    new("max", "@danne snacka inte med min brud!", DateTime.Now.AddMinutes(-5).ToUnixTime()),
 };
 
 var globalCts = new CancellationTokenSource();
