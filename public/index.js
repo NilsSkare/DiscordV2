@@ -14,7 +14,7 @@ function createMessage(username, message) {
     return {
         user: username,
         message: message,
-        time: Date.now()
+        time: Date.now(),
     };
 }
 
@@ -24,13 +24,12 @@ async function getMessages() {
     try {
         const response = await fetch(apiUrl + "/messages");
         if (!response.ok) {
-              throw new Error(`Response status: ${response.status}`);
+            throw new Error(`Response status: ${response.status}`);
         }
         const result = await response.json();
         //console.log(result.messages);
         return result.messages;
-    }
-    catch(error) {
+    } catch (error) {
         console.error(error.message);
     }
     return null;
@@ -42,12 +41,12 @@ const storedMessages = [];
 // Ta fram användnamnets färg
 function getUsernameColor(username) {
     let csum = 0;
-    for(let i = 0; i < username.length; i++) {
+    for (let i = 0; i < username.length; i++) {
         csum += username.charCodeAt(i);
     }
     let cmod = Math.floor(csum / username.charCodeAt(0)) % 10;
     //console.log(username, csum, cmod);
-    switch(cmod) {
+    switch (cmod) {
         case 0:
             return "#f87777";
         case 1:
@@ -82,16 +81,13 @@ function formatUnixT(time) {
     const hours = Math.floor(mins / 60);
     const days = Math.floor(hours / 24);
 
-    if(secs < 60) {
+    if (secs < 60) {
         return "nu";
-    }
-    else if(mins < 2) {
+    } else if (mins < 2) {
         return "en minut sen";
-    }
-    else if(mins < 25) {
-        return `${mins} minuter sen`
-    }
-    else if(days < 1) {
+    } else if (mins < 25) {
+        return `${mins} minuter sen`;
+    } else if (days < 1) {
         const date = new Date(time);
         const formattedTime = date.toLocaleTimeString("sv-SE");
         return `${formattedTime}`;
@@ -106,12 +102,12 @@ function formatUnixT(time) {
 function displayMessages(messages) {
     var messagesContainer = document.querySelector(".messages");
     messagesContainer.innerHTML = "";
-    messages .forEach(msg => {
+    messages.forEach((msg) => {
         var messageDiv = document.createElement("div");
         messageDiv.classList.add("message-div");
 
         // Alla meddelanden från användaren
-        if(msg.user === curUsername) {
+        if (msg.user === curUsername) {
             messageDiv.classList.add("my-message");
         }
 
@@ -136,16 +132,16 @@ function displayMessages(messages) {
         messageBody.innerHTML = msg.message;
         messageDiv.appendChild(messageBody);
         messagesContainer.appendChild(messageDiv);
-        });
+    });
 }
 
 async function sendCurrentMessage() {
-  const name = curUsername;
-  const text = messageInput.value;
+    const name = curUsername;
+    const text = messageInput.value;
 
-  if (!text.trim()) return;
+    if (!text.trim()) return;
 
-  await sendMessage(createMessage(name, text));
+    await sendMessage(createMessage(name, text));
 }
 
 async function sendMessage(msg) {
@@ -171,22 +167,22 @@ socket.onerror = (error) => {
 };
 
 sendBtn.addEventListener("click", async () => {
-  try {
-    await sendCurrentMessage();
-  } catch (error) {
-    console.error(error);
-    alert(error.message);
-  }
+    try {
+        await sendCurrentMessage();
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+    }
 });
 
 messageInput.addEventListener("keydown", async (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    try {
-      await sendCurrentMessage();
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        try {
+            await sendCurrentMessage();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
     }
-  }
 });
