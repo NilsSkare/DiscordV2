@@ -59,13 +59,14 @@ app.Map("/api/connect", async (HttpContext context) =>
     }
 
     using var socket = await context.WebSockets.AcceptWebSocketAsync();
-    var buffer = new byte[1024];
 
     // Kombinera cancellationtoken för request och appens livstid
     using var cts = CancellationTokenSource.CreateLinkedTokenSource(
         context.RequestAborted,
         app.Lifetime.ApplicationStopping
     );
+
+    var buffer = new byte[1024];
 
     if (socket.State == WebSocketState.Open)
     {
@@ -77,10 +78,17 @@ app.Map("/api/connect", async (HttpContext context) =>
     {
         while (socket.State == WebSocketState.Open)
         {
-            var result = await socket.ReceiveAsync(buffer, cts.Token);
+            using var ms = new MemoryStream();
+            WebSocketReceiveResult result;
+            do
+            {
+                result = await socket.ReceiveAsync(buffer, cts.Token);
+                ms.Write(buffer, 0, result.Count);
+            } while(!result.EndOfMessage);
+
             if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
             {
-                var msgJsonStr = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                var msgJsonStr = Encoding.UTF8.GetString(ms.ToArray());
                 var msg = JsonSerializer.Deserialize<MessageDto>(msgJsonStr);
 
                 // Ta fram unixtiden
