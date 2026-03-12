@@ -21,7 +21,7 @@ function createMessage(username, message) {
 const socket = new WebSocket("/api/connect");
 const storedMessages = [];
 
-// Ta fram användnamnets färg
+// Returnerar användnamnets färg som hexkod
 function getUsernameColor(username) {
     let csum = 0;
     for (let i = 0; i < username.length; i++) {
@@ -54,11 +54,12 @@ function getUsernameColor(username) {
     return "#ffffff";
 }
 
-// Formaterra unixtid till en läsbar sträng
-function formatUnixT(time) {
+// Tar emot unixtid i millisekunder
+// Returnerar en formatterad tidssträng
+function formatUnixT(unixT) {
     const curT = Date.now();
 
-    const diff = curT - time;
+    const diff = curT - unixT;
     const secs = Math.floor(diff / 1000);
     const mins = Math.floor(secs / 60);
     const hours = Math.floor(mins / 60);
@@ -71,12 +72,12 @@ function formatUnixT(time) {
     } else if (mins < 25) {
         return `${mins} minuter sen`;
     } else if (days < 1) {
-        const date = new Date(time);
+        const date = new Date(unixT);
         const formattedTime = date.toLocaleTimeString("sv-SE");
         return `${formattedTime}`;
     }
 
-    const date = new Date(time);
+    const date = new Date(unixT);
     const formattedDate = date.toLocaleDateString("sv-SE");
     const formattedTime = date.toLocaleTimeString("sv-SE");
     return `${formattedDate} ${formattedTime}`;
