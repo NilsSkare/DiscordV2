@@ -25,31 +25,15 @@ var messages = new List<MessageDto>(){
 
 HashSet<WebSocket> activeSockets = new();
 
-app.Map("/api/connect", async (HttpContext context) =>
+// Startar en chats socket
+// Skickar över gamla meddelanden till användaren
+async Task StartChatSocket(
+    HttpContext context, WebSocket socket, CancellationTokenSource cts)
 {
-    // Avsluta om requesten inte är en websocket request.
-    if (!context.WebSockets.IsWebSocketRequest)
+    activeSockets.Add(socket);
+
+    try
     {
-        Console.WriteLine("Invalid socket request");
-        context.Response.StatusCode = 400;
-        return;
-    }
-
-    using var socket = await context.WebSockets.AcceptWebSocketAsync();
-
-    // Kombinera cancellationtoken för request och appens livstid
-    using var cts = CancellationTokenSource.CreateLinkedTokenSource(
-        context.RequestAborted,
-        app.Lifetime.ApplicationStopping
-    );
-
-    var buffer = new byte[1024];
-
-    // TODO: Hantera OperationCanceledException
-    if (socket.State == WebSocketState.Open)
-    {
-        activeSockets.Add(socket);
-
         // Skicka över alla gamla meddelanden
         for (int i = 0; i < messages.Count; i++)
         {
@@ -63,6 +47,18 @@ app.Map("/api/connect", async (HttpContext context) =>
                 cts.Token);
         }
     }
+    catch(Exception e)
+    {
+        Console.WriteLine(e);
+        activeSockets.Remove(socket);
+    }
+}
+
+// Går in i en chat loop
+async Task RunChatSocket(
+    HttpContext context, WebSocket socket, CancellationTokenSource cts)
+{
+    var buffer = new byte[1024];
 
     try
     {
@@ -121,6 +117,36 @@ app.Map("/api/connect", async (HttpContext context) =>
     finally
     {
         activeSockets.Remove(socket);
+    }
+}
+
+// Hantera chat socket requests
+app.Map("/api/connect", async (HttpContext context) =>
+{
+    // Avsluta om requesten inte är en websocket request.
+    if (!context.WebSockets.IsWebSocketRequest)
+    {
+        Console.WriteLine("Invalid socket request");
+        context.Response.StatusCode = 400;
+        return;
+    }
+
+    using var socket = await context.WebSockets.AcceptWebSocketAsync();
+
+    // Kombinera cancellationtoken för request och appens livstid
+    using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+        context.RequestAborted,
+        app.Lifetime.ApplicationStopping
+    );
+
+    if (socket.State == WebSocketState.Open)
+    {
+        await StartChatSocket(context, socket, cts);
+    }
+
+    if (socket.State == WebSocketState.Open)
+    {
+        await RunChatSocket(context, socket, cts);
     }
 
     Console.WriteLine("Closing socket");
