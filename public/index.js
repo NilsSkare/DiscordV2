@@ -18,7 +18,7 @@ function createMessage(username, message) {
     };
 }
 
-const socket = new WebSocket("/api/connect");
+const socket = new WebSocket("/api/chatsocket");
 const storedMessages = [];
 
 // Returnerar användnamnets färg som hexkod

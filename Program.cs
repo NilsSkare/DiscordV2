@@ -121,7 +121,7 @@ async Task RunChatSocket(
 }
 
 // Hantera chat socket requests
-app.Map("/api/connect", async (HttpContext context) =>
+app.Map("/api/chatsocket", async (HttpContext context) =>
 {
     // Avsluta om requesten inte är en websocket request.
     if (!context.WebSockets.IsWebSocketRequest)
