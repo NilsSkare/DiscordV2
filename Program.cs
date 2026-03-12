@@ -46,7 +46,7 @@ app.MapGet("/api/messages", async (HttpRequest request, CancellationToken ct) =>
     return new { messages };
 });
 
-List<WebSocket> activeSockets = new();
+HashSet<WebSocket> activeSockets = new();
 
 app.Map("/api/connect", async (HttpContext context) =>
 {
