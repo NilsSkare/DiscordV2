@@ -118,7 +118,8 @@ function displayMessages(messages) {
     });
 }
 
-async function sendCurrentMessage() {
+// Skickar meddelandet som är skrivet i textrutan
+async function sendFormMessage() {
     const name = curUsername;
     const text = messageInput.value;
 
@@ -151,7 +152,7 @@ socket.onerror = (error) => {
 
 sendBtn.addEventListener("click", async () => {
     try {
-        await sendCurrentMessage();
+        await sendFormMessage();
     } catch (error) {
         console.error(error);
         alert(error.message);
@@ -162,7 +163,7 @@ messageInput.addEventListener("keydown", async (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         try {
-            await sendCurrentMessage();
+            await sendFormMessage();
         } catch (error) {
             console.error(error);
             alert(error.message);
