@@ -60,43 +60,60 @@ app.Map("/api/connect", async (HttpContext context) =>
 
     using var socket = await context.WebSockets.AcceptWebSocketAsync();
     var buffer = new byte[1024];
-    activeSockets.Add(socket);
 
-    while (socket.State == WebSocketState.Open)
+    // Kombinera cancellationtoken för request och appens livstid
+    using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+        context.RequestAborted,
+        app.Lifetime.ApplicationStopping
+    );
+
+    if (socket.State == WebSocketState.Open)
     {
-        var result = await socket.ReceiveAsync(buffer, context.RequestAborted);
-        if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
-        {
-            var msgJsonStr = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            var msg = JsonSerializer.Deserialize<MessageDto>(msgJsonStr);
-
-            // Ta fram unixtiden
-            long timeNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-            var saved = new MessageDto(msg.User, msg.Message, timeNow);
-            Console.WriteLine(
-                $"msg received: {saved.User} {saved.Time}: {saved.Message}");
-            messages.Add(saved);
-
-            foreach (var actSock in activeSockets)
-            {
-                var response = Encoding.UTF8.GetBytes(
-                    JsonSerializer.Serialize<MessageDto>(saved));
-                await actSock.SendAsync(
-                    response,
-                    System.Net.WebSockets.WebSocketMessageType.Text,
-                    true,
-                    context.RequestAborted);
-            }
-        }
+        activeSockets.Add(socket);
+        // TODO: Skicka över gamla meddelanden
     }
 
-    if (socket.State == WebSocketState.CloseReceived)
+    try
     {
-        await socket.CloseAsync(
-            WebSocketCloseStatus.NormalClosure,
-            "Closed",
-            context.RequestAborted);
+        while (socket.State == WebSocketState.Open)
+        {
+            var result = await socket.ReceiveAsync(buffer, cts.Token);
+            if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
+            {
+                var msgJsonStr = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                var msg = JsonSerializer.Deserialize<MessageDto>(msgJsonStr);
+
+                // Ta fram unixtiden
+                long timeNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                var saved = new MessageDto(msg.User, msg.Message, timeNow);
+                Console.WriteLine(
+                    $"msg received: {saved.User} {saved.Time}: {saved.Message}");
+                messages.Add(saved);
+
+                foreach (var actSock in activeSockets)
+                {
+                    var response = Encoding.UTF8.GetBytes(
+                        JsonSerializer.Serialize<MessageDto>(saved));
+                    await actSock.SendAsync(
+                        response,
+                        System.Net.WebSockets.WebSocketMessageType.Text,
+                        true,
+                        cts.Token);
+                }
+            }
+        }
+
+        if (socket.State == WebSocketState.CloseReceived)
+        {
+            await socket.CloseAsync(
+                WebSocketCloseStatus.NormalClosure,
+                "Closed",
+                cts.Token);
+        }
+    }
+    finally
+    {
         activeSockets.Remove(socket);
     }
 
