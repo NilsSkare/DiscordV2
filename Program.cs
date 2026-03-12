@@ -23,24 +23,6 @@ var messages = new List<MessageDto>(){
     new("max", "@danne snacka inte med min brud!", DateTime.Now.AddMinutes(-5).ToUnixTime()),
 };
 
-var globalCts = new CancellationTokenSource();
-
-// Get för meddelanden
-app.MapGet("/api/messages", async (HttpRequest request, CancellationToken ct) =>
-{
-    using var cts = CancellationTokenSource.CreateLinkedTokenSource(globalCts.Token, app.Lifetime.ApplicationStopping, ct);
-
-    if (request.Headers.TryGetValue("X-Poll", out var value) && value == "yes")
-    {
-        try
-        {
-            await Task.Delay(30 * 1000, cts.Token);
-        }
-        catch (TaskCanceledException) { }
-    }
-    return new { messages };
-});
-
 HashSet<WebSocket> activeSockets = new();
 
 app.Map("/api/connect", async (HttpContext context) =>
