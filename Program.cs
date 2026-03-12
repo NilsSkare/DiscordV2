@@ -94,14 +94,12 @@ app.Map("/api/connect", async (HttpContext context) =>
                 var response = Encoding.UTF8.GetBytes(
                     JsonSerializer.Serialize<MessageDto>(saved));
 
-                foreach (var actSock in activeSockets)
-                {
-                    await actSock.SendAsync(
+                var taskSend = activeSockets.Select(s => s.SendAsync(
                         response,
                         System.Net.WebSockets.WebSocketMessageType.Text,
                         true,
-                        cts.Token);
-                }
+                        cts.Token));
+                await Task.WhenAll(taskSend);
             }
         }
 
