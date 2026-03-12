@@ -71,7 +71,19 @@ app.Map("/api/connect", async (HttpContext context) =>
     if (socket.State == WebSocketState.Open)
     {
         activeSockets.Add(socket);
-        // TODO: Skicka över gamla meddelanden
+
+        // Skicka över alla gamla meddelanden
+        for (int i = 0; i < messages.Count; i++)
+        {
+            var msg = messages[i];
+            var response = Encoding.UTF8.GetBytes(
+                    JsonSerializer.Serialize<MessageDto>(msg));
+            await socket.SendAsync(
+                response,
+                System.Net.WebSockets.WebSocketMessageType.Text,
+                true,
+                cts.Token);
+        }
     }
 
     try
@@ -84,7 +96,7 @@ app.Map("/api/connect", async (HttpContext context) =>
             {
                 result = await socket.ReceiveAsync(buffer, cts.Token);
                 ms.Write(buffer, 0, result.Count);
-            } while(!result.EndOfMessage);
+            } while (!result.EndOfMessage);
 
             if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
             {
