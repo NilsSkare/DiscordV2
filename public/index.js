@@ -153,12 +153,6 @@ async function sendMessage(msg) {
 
 socket.onopen = () => {
     console.log("Ansluten till servern");
-
-    const msg1 = createMessage("bengt", "bengt är här!");
-    socket.send(JSON.stringify(msg1));
-
-    // Skicka ett meddelande till servern
-    //socket.send("Hej från klienten!");
 };
 
 socket.onmessage = (event) => {
