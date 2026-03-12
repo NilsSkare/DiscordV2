@@ -82,6 +82,8 @@ function formatUnixT(time) {
     return `${formattedDate} ${formattedTime}`;
 }
 
+// Visa upp alla givna meddelanden
+// Rensar meddelanden som redan visas
 function displayMessages(messages) {
     var messagesContainer = document.querySelector(".messages");
     messagesContainer.innerHTML = "";
@@ -128,6 +130,7 @@ async function sendFormMessage() {
     await sendMessage(createMessage(name, text));
 }
 
+// Skickar meddelandet till servern
 async function sendMessage(msg) {
     socket.send(JSON.stringify(msg));
 }
@@ -150,6 +153,7 @@ socket.onerror = (error) => {
     console.error("WebSocket error:", error);
 };
 
+// Skicka meddelandet om man trycker på 'send'
 sendBtn.addEventListener("click", async () => {
     try {
         await sendFormMessage();
@@ -159,6 +163,7 @@ sendBtn.addEventListener("click", async () => {
     }
 });
 
+// Skicka meddelandet om vi trycker enter i textrutan
 messageInput.addEventListener("keydown", async (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
