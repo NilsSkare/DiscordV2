@@ -96,8 +96,18 @@ app.Map("/api/connect", async (HttpContext context) =>
 
             if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
             {
-                var msgJsonStr = Encoding.UTF8.GetString(ms.ToArray());
+                var msgJsonStr = Encoding.UTF8.GetString(ms.ToArray()) ?? "";
+                if (msgJsonStr.Length == 0)
+                {
+                    Console.WriteLine("Received empty string");
+                }
                 var msg = JsonSerializer.Deserialize<MessageDto>(msgJsonStr);
+
+                if (msg == null)
+                {
+                    Console.WriteLine($"Json null: {msgJsonStr}");
+                    continue;
+                }
 
                 // Ta fram unixtiden
                 long timeNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
