@@ -169,6 +169,7 @@ sendBtn.addEventListener("click", async () => {
         console.error(error);
         alert(error.message);
     }
+    messageInput.value = "";
 });
 
 // Skicka meddelandet om vi trycker enter i textrutan
@@ -181,5 +182,6 @@ messageInput.addEventListener("keydown", async (e) => {
             console.error(error);
             alert(error.message);
         }
+        messageInput.value = "";
     }
 });
