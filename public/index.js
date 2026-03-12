@@ -82,41 +82,48 @@ function formatUnixT(time) {
     return `${formattedDate} ${formattedTime}`;
 }
 
-// Visa upp alla givna meddelanden
+// Formatterar och lägger till meddelandet i HTML:en
+function displayMessage(msg) {
+    var messagesContainer = document.querySelector(".messages");
+    var messageDiv = document.createElement("div");
+    messageDiv.classList.add("message-div");
+
+    // Alla meddelanden från användaren
+    if (msg.user === curUsername) {
+        messageDiv.classList.add("my-message");
+    }
+
+    // namn + tid ovanför chatbubblan
+    var messageHead = document.createElement("div");
+    messageHead.classList.add("message-head");
+    messageDiv.appendChild(messageHead);
+
+    var messageUsername = document.createElement("span");
+    messageUsername.innerHTML = `${msg.user}`;
+    messageUsername.style = `color: ${getUsernameColor(msg.user)}`;
+    messageHead.appendChild(messageUsername);
+
+    var messageTime = document.createElement("span");
+    messageTime.innerHTML = ` ${formatUnixT(msg.time)}`;
+    messageTime.classList.add("message-time");
+    messageHead.appendChild(messageTime);
+
+    // Chatbubblan
+    var messageBody = document.createElement("div");
+    messageBody.classList.add("message-body");
+    messageBody.innerHTML = msg.message;
+    messageDiv.appendChild(messageBody);
+    messagesContainer.appendChild(messageDiv);
+}
+
+// Visar upp alla givna meddelanden i HTML:en
 // Rensar meddelanden som redan visas
 function displayMessages(messages) {
     var messagesContainer = document.querySelector(".messages");
-    messagesContainer.innerHTML = "";
+    messagesContainer.innerHTML = ""; // Rensa meddelanden
+
     messages.forEach((msg) => {
-        var messageDiv = document.createElement("div");
-        messageDiv.classList.add("message-div");
-
-        // Alla meddelanden från användaren
-        if (msg.user === curUsername) {
-            messageDiv.classList.add("my-message");
-        }
-
-        // namn + tid ovanför chatbubblan
-        var messageHead = document.createElement("div");
-        messageHead.classList.add("message-head");
-        messageDiv.appendChild(messageHead);
-
-        var messageUsername = document.createElement("span");
-        messageUsername.innerHTML = `${msg.user}`;
-        messageUsername.style = `color: ${getUsernameColor(msg.user)}`;
-        messageHead.appendChild(messageUsername);
-
-        var messageTime = document.createElement("span");
-        messageTime.innerHTML = ` ${formatUnixT(msg.time)}`;
-        messageTime.classList.add("message-time");
-        messageHead.appendChild(messageTime);
-
-        // Chatbubblan
-        var messageBody = document.createElement("div");
-        messageBody.classList.add("message-body");
-        messageBody.innerHTML = msg.message;
-        messageDiv.appendChild(messageBody);
-        messagesContainer.appendChild(messageDiv);
+        displayMessage(msg);
     });
 }
 
@@ -142,7 +149,7 @@ socket.onopen = () => {
 socket.onmessage = (event) => {
     var msg = JSON.parse(event.data);
     storedMessages.push(msg);
-    displayMessages(storedMessages);
+    displayMessage(msg);
 };
 
 socket.onclose = () => {
