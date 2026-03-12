@@ -91,10 +91,11 @@ app.Map("/api/connect", async (HttpContext context) =>
                     $"msg received: {saved.User} {saved.Time}: {saved.Message}");
                 messages.Add(saved);
 
+                var response = Encoding.UTF8.GetBytes(
+                    JsonSerializer.Serialize<MessageDto>(saved));
+
                 foreach (var actSock in activeSockets)
                 {
-                    var response = Encoding.UTF8.GetBytes(
-                        JsonSerializer.Serialize<MessageDto>(saved));
                     await actSock.SendAsync(
                         response,
                         System.Net.WebSockets.WebSocketMessageType.Text,
