@@ -53,7 +53,7 @@ app.Map("/api/connect", async (HttpContext context) =>
     // Avsluta om requesten inte är en websocket request.
     if (!context.WebSockets.IsWebSocketRequest)
     {
-        Console.WriteLine("Fel! :(");
+        Console.WriteLine("Invalid socket request");
         context.Response.StatusCode = 400;
         return;
     }
