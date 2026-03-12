@@ -1,4 +1,4 @@
-public static class DateTimeExtensions
+static class DateTimeExtensions
 {
     public static long ToUnixTime(this DateTime dateTime)
     {
