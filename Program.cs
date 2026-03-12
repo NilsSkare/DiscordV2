@@ -91,10 +91,9 @@ app.Map("/api/connect", async (HttpContext context) =>
                     continue;
                 }
 
-                // Ta fram unixtiden
-                long timeNow = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                long unixTNow = DateTime.Now.ToUnixTime();
 
-                var saved = new MessageDto(msg.User, msg.Message, timeNow);
+                var saved = new MessageDto(msg.User, msg.Message, unixTNow);
                 Console.WriteLine(
                     $"msg received: {saved.User} {saved.Time}: {saved.Message}");
                 messages.Add(saved);
